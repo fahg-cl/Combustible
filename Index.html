@@ -413,10 +413,13 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Monto a pedir</th>
+                                    <th>Monto a maximizar</th>
                                     <th>Litros</th>
-                                    <th>Pago real</th>
+                                    <th>Ahorro</th>
+                                    <th>Monto a pedir</th>
                                     <th>Diferencia</th>
+                                    <th>Monto real</th>
+                                    <th>Monto a pagar</th>
                                 </tr>
                             </thead>
                             <tbody id="iterationsBody"></tbody>
@@ -428,274 +431,268 @@
     </main>
 
     <script>
-    var presetAmounts = [5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000];
+        var presetAmounts = [5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000];
 
-    var state = {
-      amount: 30000,
-      customAmount: "",
-      fuelPrice: 1507,
-      useCopecPay: true,
-      useJumbo: true,
-      useScotia: false,
-      showIterations: false
-    };
-
-    function formatCLP(value) {
-      var number = Number.isFinite(value) ? value : 0;
-      return new Intl.NumberFormat("es-CL", {
-        style: "currency",
-        currency: "CLP",
-        maximumFractionDigits: 0
-      }).format(number);
-    }
-
-    function formatLiters(value) {
-      var number = Number.isFinite(value) ? value : 0;
-      return new Intl.NumberFormat("es-CL", {
-        minimumFractionDigits: 3,
-        maximumFractionDigits: 3
-      }).format(number);
-    }
-
-    function onlyNumber(value) {
-      var clean = String(value || "").replace(/[^0-9]/g, "");
-      return clean ? Number(clean) : 0;
-    }
-
-    function calculateFuel(initialBudget, fuelPrice, useCopecPay, useJumbo, useScotia) {
-      var discountCopec = useCopecPay ? 10 : 0;
-      var discountJumbo = useJumbo ? 100 : 0;
-      var discountScotia = useScotia ? 75 : 0;
-      var totalDiscount = discountCopec + discountJumbo + discountScotia;
-      var discountedPrice = fuelPrice - totalDiscount;
-      var iterations = [];
-
-      if (initialBudget <= 0 || fuelPrice <= 0 || discountedPrice <= 0) {
-        return {
-          totalDiscount: totalDiscount,
-          discountedPrice: discountedPrice,
-          iterations: [],
-          finalAskAmount: 0,
-          finalLiters: 0,
-          finalAmountToPay: 0,
-          finalDifference: 0,
-          extraAmountFromDiscount: 0
+        var state = {
+            amount: 30000,
+            customAmount: "",
+            fuelPrice: 1507,
+            useCopecPay: true,
+            useJumbo: true,
+            useScotia: false,
+            showIterations: false
         };
-      }
 
-      var amountToRequest = initialBudget;
-      var previousDifference = Infinity;
-      var maxIterations = 100;
-
-      for (var i = 1; i <= maxIterations; i++) {
-        var liters = amountToRequest / discountedPrice;
-        var amountToPay = liters * fuelPrice;
-        var difference = initialBudget - amountToPay;
-
-        iterations.push({
-          iteration: i,
-          amountToRequest: amountToRequest,
-          liters: liters,
-          amountToPay: amountToPay,
-          difference: difference
-        });
-
-        if (difference >= 0 && difference < 1) {
-          break;
+        function formatCLP(value) {
+            var number = Number.isFinite(value) ? value : 0;
+            return new Intl.NumberFormat("es-CL", {
+                style: "currency",
+                currency: "CLP",
+                maximumFractionDigits: 0
+            }).format(number);
         }
 
-        if (difference < 0) {
-          var adjustedLiters = initialBudget / fuelPrice;
-          var adjustedAskAmount = adjustedLiters * discountedPrice;
-
-          iterations.push({
-            iteration: i + 1,
-            amountToRequest: adjustedAskAmount,
-            liters: adjustedLiters,
-            amountToPay: initialBudget,
-            difference: 0
-          });
-          break;
+        function formatLiters(value) {
+            var number = Number.isFinite(value) ? value : 0;
+            return new Intl.NumberFormat("es-CL", {
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3
+            }).format(number);
         }
 
-        if (Math.abs(previousDifference - difference) < 0.0001) {
-          break;
+        function onlyNumber(value) {
+            var clean = String(value || "").replace(/[^0-9]/g, "");
+            return clean ? Number(clean) : 0;
         }
 
-        previousDifference = difference;
-        amountToRequest += difference;
-      }
+        function calculateFuel(initialBudget, fuelPrice, useCopecPay, useJumbo, useScotia) {
+            var discountCopec = useCopecPay ? 10 : 0;
+            var discountJumbo = useJumbo ? 100 : 0;
+            var discountScotia = useScotia ? 75 : 0;
+            var totalDiscount = discountCopec + discountJumbo + discountScotia;
+            var discountedPrice = fuelPrice - totalDiscount;
+            var iterations = [];
 
-      var last = iterations[iterations.length - 1] || {
-        amountToRequest: 0,
-        liters: 0,
-        amountToPay: 0,
-        difference: 0
-      };
+            if (initialBudget <= 0 || fuelPrice <= 0 || discountedPrice <= 0) {
+                return {
+                    totalDiscount: totalDiscount,
+                    discountedPrice: discountedPrice,
+                    iterations: [],
+                    finalAskAmount: 0,
+                    finalLiters: 0,
+                    finalAmountToPay: 0,
+                    finalDifference: 0,
+                    extraAmountFromDiscount: 0
+                };
+            }
 
-      return {
-        totalDiscount: totalDiscount,
-        discountedPrice: discountedPrice,
-        iterations: iterations,
-        finalAskAmount: last.amountToRequest,
-        finalLiters: last.liters,
-        finalAmountToPay: last.amountToPay,
-        finalDifference: last.difference,
-        extraAmountFromDiscount: last.amountToRequest - initialBudget
-      };
-    }
+            var amountToMaximize = initialBudget;
+            var maxIterations = 100;
 
-    function renderAmountButtons() {
-      var container = document.getElementById("amountButtons");
-      container.innerHTML = "";
+            for (var i = 1; i <= maxIterations; i++) {
+                var liters = amountToMaximize / discountedPrice;
+                var saving = liters * totalDiscount;
+                var amountToAsk = initialBudget + saving;
+                var difference = amountToAsk - amountToMaximize;
+                var realAmountToPay = initialBudget - difference;
 
-      presetAmounts.forEach(function(value) {
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.textContent = formatCLP(value).replace("CLP", "").trim();
+                if (realAmountToPay < 0) {
+                    realAmountToPay = 0;
+                }
 
-        if (!state.customAmount && state.amount === value) {
-          btn.className = "active";
+                iterations.push({
+                    iteration: i,
+                    amountToMaximize: amountToMaximize,
+                    liters: liters,
+                    saving: saving,
+                    amountToAsk: amountToAsk,
+                    difference: difference,
+                    initialBudget: initialBudget,
+                    realAmountToPay: realAmountToPay
+                });
+
+                if (difference >= 0 && difference < 1) {
+                    break;
+                }
+
+                amountToMaximize = amountToAsk;
+            }
+
+            var last = iterations[iterations.length - 1] || {
+                amountToMaximize: 0,
+                liters: 0,
+                saving: 0,
+                amountToAsk: 0,
+                difference: 0,
+                realAmountToPay: 0
+            };
+
+            return {
+                totalDiscount: totalDiscount,
+                discountedPrice: discountedPrice,
+                iterations: iterations,
+                finalAskAmount: last.amountToAsk,
+                finalLiters: last.liters,
+                finalAmountToPay: last.realAmountToPay,
+                finalDifference: last.difference,
+                extraAmountFromDiscount: last.saving
+            };
         }
 
-        btn.addEventListener("click", function() {
-          state.amount = value;
-          state.customAmount = "";
-          document.getElementById("customAmount").value = "";
-          render();
-        });
+        function renderAmountButtons() {
+            var container = document.getElementById("amountButtons");
+            container.innerHTML = "";
 
-        container.appendChild(btn);
-      });
-    }
+            presetAmounts.forEach(function (value) {
+                var btn = document.createElement("button");
+                btn.type = "button";
+                btn.textContent = formatCLP(value).replace("CLP", "").trim();
 
-    function updateDiscountButtons() {
-      updateDiscountButton("copecBtn", "copecMark", state.useCopecPay);
-      updateDiscountButton("jumboBtn", "jumboMark", state.useJumbo);
-      updateDiscountButton("scotiaBtn", "scotiaMark", state.useScotia);
-    }
+                if (!state.customAmount && state.amount === value) {
+                    btn.className = "active";
+                }
 
-    function updateDiscountButton(buttonId, markId, active) {
-      var button = document.getElementById(buttonId);
-      var mark = document.getElementById(markId);
+                btn.addEventListener("click", function () {
+                    state.amount = value;
+                    state.customAmount = "";
+                    document.getElementById("customAmount").value = "";
+                    render();
+                });
 
-      if (active) {
-        button.classList.add("active");
-        mark.textContent = "✓";
-      } else {
-        button.classList.remove("active");
-        mark.textContent = "";
-      }
-    }
-
-    function renderIterations(iterations) {
-      var tbody = document.getElementById("iterationsBody");
-      tbody.innerHTML = "";
-
-      iterations.forEach(function(row) {
-        var tr = document.createElement("tr");
-        tr.innerHTML =
-          "<td>" + row.iteration + "</td>" +
-          "<td>" + formatCLP(Math.round(row.amountToRequest)) + "</td>" +
-          "<td>" + formatLiters(row.liters) + "</td>" +
-          "<td>" + formatCLP(Math.round(row.amountToPay)) + "</td>" +
-          "<td>" + formatCLP(Math.max(0, Math.floor(row.difference))) + "</td>";
-        tbody.appendChild(tr);
-      });
-    }
-
-    function render() {
-      var effectiveAmount = state.customAmount ? onlyNumber(state.customAmount) : state.amount;
-      var fuelPrice = onlyNumber(document.getElementById("fuelPrice").value || state.fuelPrice);
-
-      state.fuelPrice = fuelPrice;
-
-      var result = calculateFuel(
-        effectiveAmount,
-        fuelPrice,
-        state.useCopecPay,
-        state.useJumbo,
-        state.useScotia
-      );
-
-      renderAmountButtons();
-      updateDiscountButtons();
-
-      document.getElementById("iterationBadge").textContent = result.iterations.length + " iteración" + (result.iterations.length === 1 ? "" : "es");
-      document.getElementById("finalAskAmount").textContent = formatCLP(Math.round(result.finalAskAmount));
-      document.getElementById("finalLiters").textContent = formatLiters(result.finalLiters) + " L";
-      document.getElementById("finalPay").textContent = formatCLP(Math.round(result.finalAmountToPay));
-      document.getElementById("extraAmount").textContent = formatCLP(Math.round(result.extraAmountFromDiscount));
-      document.getElementById("finalDifference").textContent = formatCLP(Math.max(0, Math.floor(result.finalDifference)));
-
-      document.getElementById("summaryText").textContent =
-        "Con " + formatCLP(effectiveAmount) +
-        " disponibles y un descuento total de " + formatCLP(result.totalDiscount) +
-        " por litro, el precio rebajado usado para calcular la carga es " +
-        formatCLP(result.discountedPrice) + " por litro.";
-
-      renderIterations(result.iterations);
-
-      document.getElementById("tableWrap").style.display = state.showIterations ? "block" : "none";
-      document.getElementById("toggleIterations").textContent = state.showIterations ? "Ocultar iteraciones" : "Ver iteraciones";
-    }
-
-    function bindEvents() {
-      document.getElementById("customAmount").addEventListener("input", function(event) {
-        state.customAmount = event.target.value;
-        render();
-      });
-
-      document.getElementById("fuelPrice").addEventListener("input", function() {
-        render();
-      });
-
-      document.getElementById("copecBtn").addEventListener("click", function() {
-        state.useCopecPay = !state.useCopecPay;
-        if (state.useCopecPay) {
-          state.useScotia = false;
+                container.appendChild(btn);
+            });
         }
-        render();
-      });
 
-      document.getElementById("jumboBtn").addEventListener("click", function() {
-        state.useJumbo = !state.useJumbo;
-        if (state.useJumbo) {
-          state.useScotia = false;
+        function updateDiscountButtons() {
+            updateDiscountButton("copecBtn", "copecMark", state.useCopecPay);
+            updateDiscountButton("jumboBtn", "jumboMark", state.useJumbo);
+            updateDiscountButton("scotiaBtn", "scotiaMark", state.useScotia);
         }
-        render();
-      });
 
-      document.getElementById("scotiaBtn").addEventListener("click", function() {
-        state.useScotia = !state.useScotia;
-        if (state.useScotia) {
-          state.useCopecPay = false;
-          state.useJumbo = false;
+        function updateDiscountButton(buttonId, markId, active) {
+            var button = document.getElementById(buttonId);
+            var mark = document.getElementById(markId);
+
+            if (active) {
+                button.classList.add("active");
+                mark.textContent = "✓";
+            } else {
+                button.classList.remove("active");
+                mark.textContent = "";
+            }
         }
-        render();
-      });
 
-      document.getElementById("toggleIterations").addEventListener("click", function() {
-        state.showIterations = !state.showIterations;
-        render();
-      });
+        function renderIterations(iterations) {
+            var tbody = document.getElementById("iterationsBody");
+            tbody.innerHTML = "";
 
-      document.getElementById("resetBtn").addEventListener("click", function() {
-        state.amount = 30000;
-        state.customAmount = "";
-        state.fuelPrice = 1507;
-        state.useCopecPay = true;
-        state.useJumbo = true;
-        state.useScotia = false;
-        state.showIterations = false;
-        document.getElementById("customAmount").value = "";
-        document.getElementById("fuelPrice").value = "1507";
-        render();
-      });
-    }
+            iterations.forEach(function (row) {
+                var tr = document.createElement("tr");
+                tr.innerHTML =
+                    "<td>" + row.iteration + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.amountToMaximize)) + "</td>" +
+                    "<td>" + formatLiters(row.liters) + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.saving)) + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.amountToAsk)) + "</td>" +
+                    "<td>" + formatCLP(Math.max(0, Math.round(row.difference))) + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.initialBudget)) + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.realAmountToPay)) + "</td>";
+                tbody.appendChild(tr);
+            });
+        }
 
-    bindEvents();
-    render();
+        function render() {
+            var effectiveAmount = state.customAmount ? onlyNumber(state.customAmount) : state.amount;
+            var fuelPrice = onlyNumber(document.getElementById("fuelPrice").value || state.fuelPrice);
+
+            state.fuelPrice = fuelPrice;
+
+            var result = calculateFuel(
+                effectiveAmount,
+                fuelPrice,
+                state.useCopecPay,
+                state.useJumbo,
+                state.useScotia
+            );
+
+            renderAmountButtons();
+            updateDiscountButtons();
+
+            document.getElementById("iterationBadge").textContent = result.iterations.length + " iteración" + (result.iterations.length === 1 ? "" : "es");
+            document.getElementById("finalAskAmount").textContent = formatCLP(Math.round(result.finalAskAmount));
+            document.getElementById("finalLiters").textContent = formatLiters(result.finalLiters) + " L";
+            document.getElementById("finalPay").textContent = formatCLP(Math.round(result.finalAmountToPay));
+            document.getElementById("extraAmount").textContent = formatCLP(Math.round(result.extraAmountFromDiscount));
+            document.getElementById("finalDifference").textContent = formatCLP(Math.max(0, Math.floor(result.finalDifference)));
+
+            document.getElementById("summaryText").textContent =
+                "Con " + formatCLP(effectiveAmount) +
+                " disponibles y un descuento total de " + formatCLP(result.totalDiscount) +
+                " por litro, el precio rebajado usado para calcular la carga es " +
+                formatCLP(result.discountedPrice) + " por litro.";
+
+            renderIterations(result.iterations);
+
+            document.getElementById("tableWrap").style.display = state.showIterations ? "block" : "none";
+            document.getElementById("toggleIterations").textContent = state.showIterations ? "Ocultar iteraciones" : "Ver iteraciones";
+        }
+
+        function bindEvents() {
+            document.getElementById("customAmount").addEventListener("input", function (event) {
+                state.customAmount = event.target.value;
+                render();
+            });
+
+            document.getElementById("fuelPrice").addEventListener("input", function () {
+                render();
+            });
+
+            document.getElementById("copecBtn").addEventListener("click", function () {
+                state.useCopecPay = !state.useCopecPay;
+                if (state.useCopecPay) {
+                    state.useScotia = false;
+                }
+                render();
+            });
+
+            document.getElementById("jumboBtn").addEventListener("click", function () {
+                state.useJumbo = !state.useJumbo;
+                if (state.useJumbo) {
+                    state.useScotia = false;
+                }
+                render();
+            });
+
+            document.getElementById("scotiaBtn").addEventListener("click", function () {
+                state.useScotia = !state.useScotia;
+                if (state.useScotia) {
+                    state.useCopecPay = false;
+                    state.useJumbo = false;
+                }
+                render();
+            });
+
+            document.getElementById("toggleIterations").addEventListener("click", function () {
+                state.showIterations = !state.showIterations;
+                render();
+            });
+
+            document.getElementById("resetBtn").addEventListener("click", function () {
+                state.amount = 30000;
+                state.customAmount = "";
+                state.fuelPrice = 1507;
+                state.useCopecPay = true;
+                state.useJumbo = true;
+                state.useScotia = false;
+                state.showIterations = false;
+                document.getElementById("customAmount").value = "";
+                document.getElementById("fuelPrice").value = "1507";
+                render();
+            });
+        }
+
+        bindEvents();
+        render();
     </script>
 </body>
 </html>
