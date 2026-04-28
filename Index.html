@@ -1,411 +1,701 @@
-﻿import React, { useMemo, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
-import { Fuel, CreditCard, Wallet, Calculator, RotateCcw, Info, CheckCircle2 } from "lucide-react";
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora de Combustible con Descuentos</title>
+    <style>
+        :root {
+            --bg: #f4f6f8;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #d1d5db;
+            --primary: #111827;
+            --primary-soft: #e5e7eb;
+            --success: #15803d;
+            --radius: 18px;
+        }
 
-const presetAmounts = [5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000];
+        * {
+            box-sizing: border-box;
+        }
 
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
 
-const formatCLP = (value) =>
-  new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    maximumFractionDigits: 0,
-  }).format(Number.isFinite(value) ? value : 0);
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 18px;
+        }
 
-const formatNumber = (value, digits = 3) =>
-  new Intl.NumberFormat("es-CL", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  }).format(Number.isFinite(value) ? value : 0);
+        .header {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+        }
 
-function toNumber(value) {
-  if (typeof value === "number") return value;
-  const clean = String(value || "").replace(/[^0-9]/g, "");
-  return clean ? Number(clean) : 0;
-}
+            .header h1 {
+                margin: 0;
+                font-size: 28px;
+                line-height: 1.15;
+            }
 
-function calculateFuel({ initialBudget, fuelPrice, useCopecPay, useJumbo, useScotia }) {
-  const discounts = {
-    copecPay: useCopecPay ? 10 : 0,
-    jumbo: useJumbo ? 100 : 0,
-    scotia: useScotia ? 75 : 0,
-  };
+            .header p {
+                margin: 8px 0 0;
+                color: var(--muted);
+                font-size: 15px;
+            }
 
-  const totalDiscount = discounts.copecPay + discounts.jumbo + discounts.scotia;
-  const discountedPrice = fuelPrice - totalDiscount;
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 0.9fr;
+            gap: 18px;
+        }
 
-  if (initialBudget <= 0 || fuelPrice <= 0 || discountedPrice <= 0) {
-    return {
-      valid: false,
-      discounts,
-      totalDiscount,
-      discountedPrice,
-      iterations: [],
-      finalAskAmount: 0,
-      finalLiters: 0,
-      finalAmountToPay: 0,
-      finalDifference: 0,
-      extraAmountFromDiscount: 0,
-    };
-  }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        }
 
-  const iterations = [];
-  let amountToRequest = initialBudget;
-  let previousDifference = Infinity;
-  const maxIterations = 100;
+        h2 {
+            margin: 0 0 14px;
+            font-size: 20px;
+        }
 
-  for (let i = 1; i <= maxIterations; i += 1) {
-    const liters = amountToRequest / discountedPrice;
-    const amountToPay = liters * fuelPrice;
-    const difference = initialBudget - amountToPay;
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
 
-    iterations.push({
-      iteration: i,
-      amountToRequest,
-      liters,
-      amountToPay,
-      difference,
-      additionalFromDiscount: amountToRequest - initialBudget,
-    });
+        input {
+            width: 100%;
+            height: 48px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 0 14px;
+            font-size: 18px;
+            outline: none;
+        }
 
-    if (difference >= 0 && difference < 1) break;
+            input:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.12);
+            }
 
-    if (difference < 0) {
-      const adjustedLiters = initialBudget / fuelPrice;
-      iterations.push({
-        iteration: i + 1,
-        amountToRequest: adjustedLiters * discountedPrice,
-        liters: adjustedLiters,
-        amountToPay: initialBudget,
-        difference: 0,
-        additionalFromDiscount: adjustedLiters * discountedPrice - initialBudget,
-        adjusted: true,
-      });
-      break;
-    }
+        .amounts {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
 
-    if (Math.abs(previousDifference - difference) < 0.0001) break;
-    previousDifference = difference;
-    amountToRequest += difference;
-  }
+        button {
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+            border-radius: 14px;
+            padding: 13px 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.18s ease;
+        }
 
-  const last = iterations[iterations.length - 1];
+            button:hover {
+                transform: translateY(-1px);
+                border-color: var(--primary);
+            }
 
-  return {
-    valid: true,
-    discounts,
-    totalDiscount,
-    discountedPrice,
-    iterations,
-    finalAskAmount: last?.amountToRequest || 0,
-    finalLiters: last?.liters || 0,
-    finalAmountToPay: last?.amountToPay || 0,
-    finalDifference: last?.difference || 0,
-    extraAmountFromDiscount: (last?.amountToRequest || 0) - initialBudget,
-  };
-}
+            button.active,
+            .discount.active {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
 
-export default function FuelDiscountCalculator() {
-  const [amount, setAmount] = useState(30000);
-  const [customAmount, setCustomAmount] = useState("");
-  const [fuelPrice, setFuelPrice] = useState(1507);
-  const [useCopecPay, setUseCopecPay] = useState(true);
-  const [useJumbo, setUseJumbo] = useState(true);
-  const [useScotia, setUseScotia] = useState(false);
-  const [showIterations, setShowIterations] = useState(false);
+        .discount {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+            margin-bottom: 10px;
+            padding: 15px;
+        }
 
-  const effectiveAmount = customAmount ? toNumber(customAmount) : amount;
+            .discount small {
+                display: block;
+                margin-top: 4px;
+                color: var(--muted);
+                font-weight: 400;
+            }
 
-  const result = useMemo(
-    () =>
-      calculateFuel({
-        initialBudget: effectiveAmount,
-        fuelPrice: toNumber(fuelPrice),
-        useCopecPay,
-        useJumbo,
-        useScotia,
-      }),
-    [effectiveAmount, fuelPrice, useCopecPay, useJumbo, useScotia]
-  );
+            .discount.active small {
+                color: #d1d5db;
+            }
 
-  const selectPreset = (value) => {
-    setAmount(value);
-    setCustomAmount("");
-  };
+        .result {
+            background: var(--primary);
+            color: white;
+            border-radius: 24px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+        }
 
-  const toggleCopecPay = () => {
-    const next = !useCopecPay;
-    setUseCopecPay(next);
-    if (next) setUseScotia(false);
-  };
+            .result .label {
+                color: #d1d5db;
+                font-size: 14px;
+            }
 
-  const toggleJumbo = () => {
-    const next = !useJumbo;
-    setUseJumbo(next);
-    if (next) setUseScotia(false);
-  };
+            .result .main {
+                font-size: 42px;
+                font-weight: 800;
+                margin: 6px 0 18px;
+                line-height: 1;
+            }
 
-  const toggleScotia = () => {
-    const next = !useScotia;
-    setUseScotia(next);
-    if (next) {
-      setUseCopecPay(false);
-      setUseJumbo(false);
-    }
-  };
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
 
-  const reset = () => {
-    setAmount(30000);
-    setCustomAmount("");
-    setFuelPrice(1507);
-    setUseCopecPay(true);
-    setUseJumbo(true);
-    setUseScotia(false);
-    setShowIterations(false);
-  };
+        .metric {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 14px;
+        }
 
-  return (
-<div className="min-h-screen bg-slate-50 text-slate-900">
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        <motion.div initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35 }}
-                    className="mb-6">
-            <div className="flex flex-col gap-3 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-7">
-                <div className="flex items-center gap-3">
-                    <div className="rounded-2xl bg-slate-900 p-3 text-white">
-                        <Fuel className="h-7 w-7" />
+            .metric span {
+                display: block;
+                color: #d1d5db;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+
+            .metric strong {
+                display: block;
+                margin-top: 6px;
+                font-size: 22px;
+            }
+
+        .summary {
+            background: white;
+            color: var(--text);
+            border-radius: 16px;
+            padding: 14px;
+            margin-top: 14px;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+            .summary strong {
+                display: block;
+                margin-bottom: 5px;
+            }
+
+        .info {
+            background: var(--primary-soft);
+            border-radius: 16px;
+            padding: 14px;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.45;
+            margin-bottom: 14px;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+            .actions button:first-child {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
+
+        .table-wrap {
+            display: none;
+            margin-top: 16px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 660px;
+            border-collapse: collapse;
+            font-size: 14px;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #eef0f2;
+            text-align: right;
+        }
+
+            th:first-child,
+            td:first-child {
+                text-align: left;
+            }
+
+        th {
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 13px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #ffffff;
+            color: var(--primary);
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .field-space {
+            margin-top: 14px;
+        }
+
+        @media (max-width: 840px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .amounts {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .result .main {
+                font-size: 34px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header,
+            .card,
+            .result {
+                border-radius: 18px;
+                padding: 16px;
+            }
+
+                .header h1 {
+                    font-size: 24px;
+                }
+
+            .amounts {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .result-grid,
+            .actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <section class="header">
+            <h1>Calculadora de carga con descuentos</h1>
+            <p>Calcula el monto que debes pedir en la bomba para aprovechar al máximo los descuentos por litro.</p>
+        </section>
+
+        <section class="grid">
+            <div>
+                <div class="card">
+                    <h2>Monto disponible</h2>
+                    <div class="amounts" id="amountButtons"></div>
+
+                    <div class="field-space">
+                        <label for="customAmount">Otro monto</label>
+                        <input id="customAmount" type="text" inputmode="numeric" placeholder="Ej: 32000" />
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
-                            Calculadora de carga con descuentos
-                        </h1>
-                        <p className="mt-1 text-sm text-slate-600 sm:text-base">
-                            Cálcula cuánto dinero debes pedir en la bomba para aprovechar al máximo los descuentos por litro.
-                        </p>
+                </div>
+
+                <div class="card">
+                    <h2>Precio y descuentos</h2>
+
+                    <label for="fuelPrice">Precio combustible por litro</label>
+                    <input id="fuelPrice" type="text" inputmode="numeric" value="1507" />
+
+                    <div class="field-space">
+                        <button class="discount active" id="copecBtn" type="button">
+                            <span>CopecPay <small>$10 por litro. Excluye Scotiabank.</small></span>
+                            <span id="copecMark">✓</span>
+                        </button>
+
+                        <button class="discount active" id="jumboBtn" type="button">
+                            <span>Código Jumbo <small>$100 por litro. Excluye Scotiabank.</small></span>
+                            <span id="jumboMark">✓</span>
+                        </button>
+
+                        <button class="discount" id="scotiaBtn" type="button">
+                            <span>Scotiabank crédito <small>$75 por litro. Excluye CopecPay y Jumbo.</small></span>
+                            <span id="scotiaMark"></span>
+                        </button>
                     </div>
                 </div>
             </div>
-        </motion.div>
 
-        <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
-            <div className="space-y-5">
-                <Card className="rounded-3xl border-slate-200 shadow-sm">
-                    <CardContent className="p-5 sm:p-6">
-                        <div className="mb-4 flex items-center gap-2">
-                            <Wallet className="h-5 w-5" />
-                            <h2 className="text-xl font-semibold">Monto disponible</h2>
+            <div>
+                <div class="result">
+                    <div class="badge" id="iterationBadge">0 iteraciones</div>
+                    <div class="label">Monto recomendado a pedir</div>
+                    <div class="main" id="finalAskAmount">$0</div>
+
+                    <div class="result-grid">
+                        <div class="metric">
+                            <span>Litros estimados</span>
+                            <strong id="finalLiters">0,000 L</strong>
                         </div>
-
-                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                            {presetAmounts.map((value) => {
-                            const active = !customAmount && amount === value;
-                            return (
-                            <Button key={value}
-                                    type="button"
-                                    variant={active ? "default" : "outline" }
-                                    className="h-12 rounded-2xl text-sm font-semibold sm:text-base"
-                                    onClick={() =>
-                                selectPreset(value)}
-                                >
-                                {formatCLP(value).replace("CLP", "")}
-                            </Button>
-                            );
-                            })}
+                        <div class="metric">
+                            <span>Pago real estimado</span>
+                            <strong id="finalPay">$0</strong>
                         </div>
-
-                        <div className="mt-5">
-                            <Label htmlFor="customAmount" className="text-sm font-medium">
-                                Otro monto
-                            </Label>
-                            <Input id="customAmount"
-                                   inputMode="numeric"
-                                   value={customAmount}
-                                   onChange={(e) => setCustomAmount(e.target.value)}
-                            placeholder="Ej: 32000"
-                            className="mt-2 h-12 rounded-2xl text-lg"
-                            />
+                        <div class="metric">
+                            <span>Monto adicional usado</span>
+                            <strong id="extraAmount">$0</strong>
                         </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="rounded-3xl border-slate-200 shadow-sm">
-                    <CardContent className="p-5 sm:p-6">
-                        <div className="mb-4 flex items-center gap-2">
-                            <Calculator className="h-5 w-5" />
-                            <h2 className="text-xl font-semibold">Precio y descuentos</h2>
+                        <div class="metric">
+                            <span>Diferencia final</span>
+                            <strong id="finalDifference">$0</strong>
                         </div>
+                    </div>
 
-                        <div className="mb-5">
-                            <Label htmlFor="fuelPrice" className="text-sm font-medium">
-                                Precio combustible por litro
-                            </Label>
-                            <Input id="fuelPrice"
-                                   inputMode="numeric"
-                                   value={fuelPrice}
-                                   onChange={(e) => setFuelPrice(e.target.value)}
-                            className="mt-2 h-12 rounded-2xl text-lg"
-                            />
-                        </div>
+                    <div class="summary">
+                        <strong>Resumen del cálculo</strong>
+                        <span id="summaryText"></span>
+                    </div>
+                </div>
 
-                        <div className="grid gap-3">
-                            <button type="button"
-                                    onClick={toggleCopecPay}
-                                    className={`rounded-2xl border p-4 text-left transition ${
-                                    useCopecPay ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white hover:bg-slate-50"
-                                    }`}>
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <Wallet className="h-5 w-5" />
-                                        <div>
-                                            <p className="font-semibold">CopecPay</p>
-                                            <p className={`text-sm ${useCopecPay ? "text-slate-200" : "text-slate-500" }`}>$10 por litro</p>
-                                        </div>
-                                    </div>
-                                    {useCopecPay && <CheckCircle2 className="h-5 w-5" />}
-                                </div>
-                            </button>
+                <div class="card">
+                    <div class="info">
+                        El cálculo repite el uso del ahorro generado por los descuentos hasta que la diferencia contra el monto disponible sea menor a $1 y mayor o igual a $0.
+                    </div>
 
-                            <button type="button"
-                                    onClick={toggleJumbo}
-                                    className={`rounded-2xl border p-4 text-left transition ${
-                                    useJumbo ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white hover:bg-slate-50"
-                                    }`}>
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <Fuel className="h-5 w-5" />
-                                        <div>
-                                            <p className="font-semibold">Código Jumbo</p>
-                                            <p className={`text-sm ${useJumbo ? "text-slate-200" : "text-slate-500" }`}>$100 por litro</p>
-                                        </div>
-                                    </div>
-                                    {useJumbo && <CheckCircle2 className="h-5 w-5" />}
-                                </div>
-                            </button>
+                    <div class="actions">
+                        <button id="toggleIterations" type="button">Ver iteraciones</button>
+                        <button id="resetBtn" type="button">Reiniciar</button>
+                    </div>
 
-                            <button type="button"
-                                    onClick={toggleScotia}
-                                    className={`rounded-2xl border p-4 text-left transition ${
-                                    useScotia ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white hover:bg-slate-50"
-                                    }`}>
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <CreditCard className="h-5 w-5" />
-                                        <div>
-                                            <p className="font-semibold">Scotiabank crédito</p>
-                                            <p className={`text-sm ${useScotia ? "text-slate-200" : "text-slate-500" }`}>
-                                                $75 por litro. Excluye CopecPay y Jumbo.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    {useScotia && <CheckCircle2 className="h-5 w-5" />}
-                                </div>
-                            </button>
-                        </div>
-                    </CardContent>
-                </Card>
+                    <div class="table-wrap" id="tableWrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Monto a pedir</th>
+                                    <th>Litros</th>
+                                    <th>Pago real</th>
+                                    <th>Diferencia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="iterationsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+        </section>
+    </main>
 
-            <div className="space-y-5">
-                <Card className="rounded-3xl border-slate-200 bg-slate-900 text-white shadow-sm">
-                    <CardContent className="p-5 sm:p-6">
-                        <div className="mb-5 flex items-center justify-between gap-3">
-                            <div>
-                                <p className="text-sm text-slate-300">Monto recomendado a pedir</p>
-                                <h2 className="mt-1 text-4xl font-bold tracking-tight sm:text-5xl">
-                                    {formatCLP(Math.round(result.finalAskAmount))}
-                                </h2>
-                            </div>
-                            <Badge className="rounded-full bg-white px-3 py-1 text-slate-900 hover:bg-white">
-                                {result.iterations.length} iteración{result.iterations.length === 1 ? "" : "es"}
-                            </Badge>
-                        </div>
+    <script>
+    var presetAmounts = [5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000];
 
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            <div className="rounded-2xl bg-white/10 p-4">
-                                <p className="text-xs uppercase tracking-wide text-slate-300">Litros estimados</p>
-                                <p className="mt-1 text-2xl font-semibold">{formatNumber(result.finalLiters)} L</p>
-                            </div>
-                            <div className="rounded-2xl bg-white/10 p-4">
-                                <p className="text-xs uppercase tracking-wide text-slate-300">Pago real estimado</p>
-                                <p className="mt-1 text-2xl font-semibold">{formatCLP(Math.round(result.finalAmountToPay))}</p>
-                            </div>
-                            <div className="rounded-2xl bg-white/10 p-4">
-                                <p className="text-xs uppercase tracking-wide text-slate-300">Monto adicional usado</p>
-                                <p className="mt-1 text-2xl font-semibold">{formatCLP(Math.round(result.extraAmountFromDiscount))}</p>
-                            </div>
-                            <div className="rounded-2xl bg-white/10 p-4">
-                                <p className="text-xs uppercase tracking-wide text-slate-300">Diferencia final</p>
-                                <p className="mt-1 text-2xl font-semibold">{formatCLP(Math.max(0, Math.floor(result.finalDifference)))}</p>
-                            </div>
-                        </div>
+    var state = {
+      amount: 30000,
+      customAmount: "",
+      fuelPrice: 1507,
+      useCopecPay: true,
+      useJumbo: true,
+      useScotia: false,
+      showIterations: false
+    };
 
-                        <div className="mt-5 rounded-2xl bg-white p-4 text-slate-900">
-                            <p className="text-sm font-semibold">Resumen del cálculo</p>
-                            <p className="mt-1 text-sm text-slate-600">
-                                Con {formatCLP(effectiveAmount)} disponibles y un descuento total de {formatCLP(result.totalDiscount)} por litro,
-                                el precio rebajado usado para calcular la carga es {formatCLP(result.discountedPrice)} por litro.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
+    function formatCLP(value) {
+      var number = Number.isFinite(value) ? value : 0;
+      return new Intl.NumberFormat("es-CL", {
+        style: "currency",
+        currency: "CLP",
+        maximumFractionDigits: 0
+      }).format(number);
+    }
 
-                <Card className="rounded-3xl border-slate-200 shadow-sm">
-                    <CardContent className="p-5 sm:p-6">
-                        <div className="mb-4 flex items-start gap-3 rounded-2xl bg-slate-100 p-4">
-                            <Info className="mt-0.5 h-5 w-5 shrink-0" />
-                            <p className="text-sm text-slate-700">
-                                El cálculo repite el uso del ahorro generado por el descuento hasta que la diferencia contra el monto disponible sea menor a $1 y mayor o igual a $0.
-                            </p>
-                        </div>
+    function formatLiters(value) {
+      var number = Number.isFinite(value) ? value : 0;
+      return new Intl.NumberFormat("es-CL", {
+        minimumFractionDigits: 3,
+        maximumFractionDigits: 3
+      }).format(number);
+    }
 
-                        <div className="flex flex-col gap-2 sm:flex-row">
-                            <Button className="h-11 flex-1 rounded-2xl" onClick={() =>
-                                setShowIterations(!showIterations)}>
-                                {showIterations ? "Ocultar iteraciones" : "Ver iteraciones"}
-                            </Button>
-                            <Button variant="outline" className="h-11 rounded-2xl" onClick={reset}>
-                                <RotateCcw className="mr-2 h-4 w-4" />
-                                Reiniciar
-                            </Button>
-                        </div>
+    function onlyNumber(value) {
+      var clean = String(value || "").replace(/[^0-9]/g, "");
+      return clean ? Number(clean) : 0;
+    }
 
-                        {showIterations && (
-                        <div className="mt-5 max-h-[420px] overflow-auto rounded-2xl border border-slate-200">
-                            <table className="w-full min-w-[620px] text-sm">
-                                <thead className="sticky top-0 bg-slate-100 text-slate-700">
-                                    <tr>
-                                        <th className="px-3 py-3 text-left">#</th>
-                                        <th className="px-3 py-3 text-right">Monto a pedir</th>
-                                        <th className="px-3 py-3 text-right">Litros</th>
-                                        <th className="px-3 py-3 text-right">Pago real</th>
-                                        <th className="px-3 py-3 text-right">Diferencia</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {result.iterations.map((row) => (
-                                    <tr key={`${row.iteration}-${row.amountToRequest}`} className="border-t border-slate-100">
-                                        <td className="px-3 py-3">{row.iteration}</td>
-                                        <td className="px-3 py-3 text-right font-medium">{formatCLP(Math.round(row.amountToRequest))}</td>
-                                        <td className="px-3 py-3 text-right">{formatNumber(row.liters)}</td>
-                                        <td className="px-3 py-3 text-right">{formatCLP(Math.round(row.amountToPay))}</td>
-                                        <td className="px-3 py-3 text-right">{formatCLP(Math.max(0, Math.floor(row.difference)))}</td>
-                                    </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    </div>
-</div>
-  );
-}
+    function calculateFuel(initialBudget, fuelPrice, useCopecPay, useJumbo, useScotia) {
+      var discountCopec = useCopecPay ? 10 : 0;
+      var discountJumbo = useJumbo ? 100 : 0;
+      var discountScotia = useScotia ? 75 : 0;
+      var totalDiscount = discountCopec + discountJumbo + discountScotia;
+      var discountedPrice = fuelPrice - totalDiscount;
+      var iterations = [];
+
+      if (initialBudget <= 0 || fuelPrice <= 0 || discountedPrice <= 0) {
+        return {
+          totalDiscount: totalDiscount,
+          discountedPrice: discountedPrice,
+          iterations: [],
+          finalAskAmount: 0,
+          finalLiters: 0,
+          finalAmountToPay: 0,
+          finalDifference: 0,
+          extraAmountFromDiscount: 0
+        };
+      }
+
+      var amountToRequest = initialBudget;
+      var previousDifference = Infinity;
+      var maxIterations = 100;
+
+      for (var i = 1; i <= maxIterations; i++) {
+        var liters = amountToRequest / discountedPrice;
+        var amountToPay = liters * fuelPrice;
+        var difference = initialBudget - amountToPay;
+
+        iterations.push({
+          iteration: i,
+          amountToRequest: amountToRequest,
+          liters: liters,
+          amountToPay: amountToPay,
+          difference: difference
+        });
+
+        if (difference >= 0 && difference < 1) {
+          break;
+        }
+
+        if (difference < 0) {
+          var adjustedLiters = initialBudget / fuelPrice;
+          var adjustedAskAmount = adjustedLiters * discountedPrice;
+
+          iterations.push({
+            iteration: i + 1,
+            amountToRequest: adjustedAskAmount,
+            liters: adjustedLiters,
+            amountToPay: initialBudget,
+            difference: 0
+          });
+          break;
+        }
+
+        if (Math.abs(previousDifference - difference) < 0.0001) {
+          break;
+        }
+
+        previousDifference = difference;
+        amountToRequest += difference;
+      }
+
+      var last = iterations[iterations.length - 1] || {
+        amountToRequest: 0,
+        liters: 0,
+        amountToPay: 0,
+        difference: 0
+      };
+
+      return {
+        totalDiscount: totalDiscount,
+        discountedPrice: discountedPrice,
+        iterations: iterations,
+        finalAskAmount: last.amountToRequest,
+        finalLiters: last.liters,
+        finalAmountToPay: last.amountToPay,
+        finalDifference: last.difference,
+        extraAmountFromDiscount: last.amountToRequest - initialBudget
+      };
+    }
+
+    function renderAmountButtons() {
+      var container = document.getElementById("amountButtons");
+      container.innerHTML = "";
+
+      presetAmounts.forEach(function(value) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = formatCLP(value).replace("CLP", "").trim();
+
+        if (!state.customAmount && state.amount === value) {
+          btn.className = "active";
+        }
+
+        btn.addEventListener("click", function() {
+          state.amount = value;
+          state.customAmount = "";
+          document.getElementById("customAmount").value = "";
+          render();
+        });
+
+        container.appendChild(btn);
+      });
+    }
+
+    function updateDiscountButtons() {
+      updateDiscountButton("copecBtn", "copecMark", state.useCopecPay);
+      updateDiscountButton("jumboBtn", "jumboMark", state.useJumbo);
+      updateDiscountButton("scotiaBtn", "scotiaMark", state.useScotia);
+    }
+
+    function updateDiscountButton(buttonId, markId, active) {
+      var button = document.getElementById(buttonId);
+      var mark = document.getElementById(markId);
+
+      if (active) {
+        button.classList.add("active");
+        mark.textContent = "✓";
+      } else {
+        button.classList.remove("active");
+        mark.textContent = "";
+      }
+    }
+
+    function renderIterations(iterations) {
+      var tbody = document.getElementById("iterationsBody");
+      tbody.innerHTML = "";
+
+      iterations.forEach(function(row) {
+        var tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td>" + row.iteration + "</td>" +
+          "<td>" + formatCLP(Math.round(row.amountToRequest)) + "</td>" +
+          "<td>" + formatLiters(row.liters) + "</td>" +
+          "<td>" + formatCLP(Math.round(row.amountToPay)) + "</td>" +
+          "<td>" + formatCLP(Math.max(0, Math.floor(row.difference))) + "</td>";
+        tbody.appendChild(tr);
+      });
+    }
+
+    function render() {
+      var effectiveAmount = state.customAmount ? onlyNumber(state.customAmount) : state.amount;
+      var fuelPrice = onlyNumber(document.getElementById("fuelPrice").value || state.fuelPrice);
+
+      state.fuelPrice = fuelPrice;
+
+      var result = calculateFuel(
+        effectiveAmount,
+        fuelPrice,
+        state.useCopecPay,
+        state.useJumbo,
+        state.useScotia
+      );
+
+      renderAmountButtons();
+      updateDiscountButtons();
+
+      document.getElementById("iterationBadge").textContent = result.iterations.length + " iteración" + (result.iterations.length === 1 ? "" : "es");
+      document.getElementById("finalAskAmount").textContent = formatCLP(Math.round(result.finalAskAmount));
+      document.getElementById("finalLiters").textContent = formatLiters(result.finalLiters) + " L";
+      document.getElementById("finalPay").textContent = formatCLP(Math.round(result.finalAmountToPay));
+      document.getElementById("extraAmount").textContent = formatCLP(Math.round(result.extraAmountFromDiscount));
+      document.getElementById("finalDifference").textContent = formatCLP(Math.max(0, Math.floor(result.finalDifference)));
+
+      document.getElementById("summaryText").textContent =
+        "Con " + formatCLP(effectiveAmount) +
+        " disponibles y un descuento total de " + formatCLP(result.totalDiscount) +
+        " por litro, el precio rebajado usado para calcular la carga es " +
+        formatCLP(result.discountedPrice) + " por litro.";
+
+      renderIterations(result.iterations);
+
+      document.getElementById("tableWrap").style.display = state.showIterations ? "block" : "none";
+      document.getElementById("toggleIterations").textContent = state.showIterations ? "Ocultar iteraciones" : "Ver iteraciones";
+    }
+
+    function bindEvents() {
+      document.getElementById("customAmount").addEventListener("input", function(event) {
+        state.customAmount = event.target.value;
+        render();
+      });
+
+      document.getElementById("fuelPrice").addEventListener("input", function() {
+        render();
+      });
+
+      document.getElementById("copecBtn").addEventListener("click", function() {
+        state.useCopecPay = !state.useCopecPay;
+        if (state.useCopecPay) {
+          state.useScotia = false;
+        }
+        render();
+      });
+
+      document.getElementById("jumboBtn").addEventListener("click", function() {
+        state.useJumbo = !state.useJumbo;
+        if (state.useJumbo) {
+          state.useScotia = false;
+        }
+        render();
+      });
+
+      document.getElementById("scotiaBtn").addEventListener("click", function() {
+        state.useScotia = !state.useScotia;
+        if (state.useScotia) {
+          state.useCopecPay = false;
+          state.useJumbo = false;
+        }
+        render();
+      });
+
+      document.getElementById("toggleIterations").addEventListener("click", function() {
+        state.showIterations = !state.showIterations;
+        render();
+      });
+
+      document.getElementById("resetBtn").addEventListener("click", function() {
+        state.amount = 30000;
+        state.customAmount = "";
+        state.fuelPrice = 1507;
+        state.useCopecPay = true;
+        state.useJumbo = true;
+        state.useScotia = false;
+        state.showIterations = false;
+        document.getElementById("customAmount").value = "";
+        document.getElementById("fuelPrice").value = "1507";
+        render();
+      });
+    }
+
+    bindEvents();
+    render();
+    </script>
+</body>
+</html>
