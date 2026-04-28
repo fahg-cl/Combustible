@@ -459,7 +459,7 @@
                         </button>
 
                         <button class="discount jumbo active" id="jumboBtn" type="button">
-                            <span>Código Jumbo <small>$100 por litro. Excluye Scotiabank y Caja Los Andes.</small></span>
+                            <span>Código Jumbo <small>$100 por litro. Excluye Scotiabank, Caja Los Andes y cupones Copec.</small></span>
                             <span id="jumboMark">✓</span>
                         </button>
 
@@ -671,6 +671,9 @@
                 btn.addEventListener("click", function () {
                     if (state.useCaja && value !== 0) return;
                     state.selectedCoupon = value;
+                    if (value > 0) {
+                        state.useJumbo = false;
+                    }
                     render();
                 });
                 container.appendChild(btn);
@@ -773,6 +776,7 @@
                 if (state.useJumbo) {
                     state.useScotia = false;
                     state.useCaja = false;
+                    state.selectedCoupon = 0;
                 }
                 render();
             });
