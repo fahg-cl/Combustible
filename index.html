@@ -1,0 +1,832 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Combustible</title>
+    <link rel="apple-touch-icon" href="iconobencina.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="iconobencina.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="iconobencina.png"> 
+    <style>
+        :root {
+            --bg: #eef6ff;
+            --bg-2: #fff7ed;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #dbe3ef;
+            --primary: #0f172a;
+            --blue: #2563eb;
+            --orange: #f97316;
+            --green: #16a34a;
+            --purple: #7c3aed;
+            --amber: #f59e0b;
+            --red: #dc2626;
+            --soft-blue: #dbeafe;
+            --soft-orange: #ffedd5;
+            --soft-green: #dcfce7;
+            --soft-purple: #ede9fe;
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: radial-gradient(circle at top left, var(--soft-orange), transparent 34%), radial-gradient(circle at top right, var(--soft-blue), transparent 32%), linear-gradient(135deg, var(--bg), var(--bg-2));
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 18px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            color: white;
+            border-radius: 26px;
+            padding: 24px;
+            margin-bottom: 18px;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .header:after {
+                content: "";
+                position: absolute;
+                right: -40px;
+                top: -40px;
+                width: 160px;
+                height: 160px;
+                border-radius: 999px;
+                background: rgba(249, 115, 22, 0.35);
+            }
+
+            .header h1 {
+                margin: 0;
+                font-size: 30px;
+                line-height: 1.15;
+                position: relative;
+                z-index: 1;
+            }
+
+            .header p {
+                margin: 8px 0 0;
+                color: #dbeafe;
+                font-size: 15px;
+                position: relative;
+                z-index: 1;
+            }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 0.9fr;
+            gap: 18px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(219, 227, 239, 0.95);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+            backdrop-filter: blur(8px);
+        }
+
+        h2 {
+            margin: 0 0 14px;
+            font-size: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            height: 48px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 0 14px;
+            font-size: 18px;
+            outline: none;
+            background: #ffffff;
+        }
+
+            input:focus {
+                border-color: var(--blue);
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+            }
+
+        .amounts, .coupons {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .amounts {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .coupons {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        button {
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text);
+            border-radius: 14px;
+            padding: 13px 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.18s ease;
+        }
+
+            button:hover {
+                transform: translateY(-1px);
+                border-color: var(--blue);
+                box-shadow: 0 8px 16px rgba(37, 99, 235, 0.12);
+            }
+
+            button.active {
+                background: linear-gradient(135deg, var(--blue), #1d4ed8);
+                color: white;
+                border-color: var(--blue);
+            }
+
+        .discount {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-left-width: 6px;
+        }
+
+            .discount.copec {
+                border-left-color: var(--orange);
+            }
+
+            .discount.jumbo {
+                border-left-color: var(--green);
+            }
+
+            .discount.scotia {
+                border-left-color: var(--blue);
+            }
+
+            .discount.caja {
+                border-left-color: var(--purple);
+            }
+
+            .discount small {
+                display: block;
+                margin-top: 4px;
+                color: var(--muted);
+                font-weight: 400;
+                line-height: 1.35;
+            }
+
+            .discount.active {
+                color: white;
+                border-color: transparent;
+            }
+
+            .discount.copec.active {
+                background: linear-gradient(135deg, var(--orange), #ea580c);
+            }
+
+            .discount.jumbo.active {
+                background: linear-gradient(135deg, var(--green), #15803d);
+            }
+
+            .discount.scotia.active {
+                background: linear-gradient(135deg, var(--blue), #1d4ed8);
+            }
+
+            .discount.caja.active {
+                background: linear-gradient(135deg, var(--purple), #6d28d9);
+            }
+
+            .discount.active small {
+                color: rgba(255,255,255,0.82);
+            }
+
+        .coupon-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin: 18px 0 10px;
+        }
+
+            .coupon-title span {
+                font-size: 13px;
+                color: var(--muted);
+                font-weight: 700;
+            }
+
+        .coupon-btn.active {
+            background: linear-gradient(135deg, var(--amber), var(--orange));
+            border-color: var(--orange);
+        }
+
+        .result {
+            background: linear-gradient(135deg, #0f172a, #1e293b 55%, #ea580c);
+            color: white;
+            border-radius: 24px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+        }
+
+            .result .label {
+                color: #e2e8f0;
+                font-size: 14px;
+            }
+
+            .result .main {
+                font-size: 42px;
+                font-weight: 800;
+                margin: 6px 0 18px;
+                line-height: 1;
+            }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .metric {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+            .metric span {
+                display: block;
+                color: #dbeafe;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+
+            .metric strong {
+                display: block;
+                margin-top: 6px;
+                font-size: 22px;
+            }
+
+        .summary {
+            background: rgba(255,255,255,0.95);
+            color: var(--text);
+            border-radius: 16px;
+            padding: 14px;
+            margin-top: 14px;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+            .summary strong {
+                display: block;
+                margin-bottom: 5px;
+            }
+
+        .info {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-orange));
+            border-radius: 16px;
+            padding: 14px;
+            font-size: 14px;
+            color: #334155;
+            line-height: 1.45;
+            margin-bottom: 14px;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+            .actions button:first-child {
+                background: linear-gradient(135deg, var(--blue), #1d4ed8);
+                color: white;
+                border-color: var(--blue);
+            }
+
+        .table-wrap {
+            display: none;
+            margin-top: 16px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 920px;
+            border-collapse: collapse;
+            font-size: 14px;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #eef0f2;
+            text-align: right;
+        }
+
+            th:first-child, td:first-child {
+                text-align: left;
+            }
+
+        th {
+            background: #f8fafc;
+            color: #334155;
+            font-size: 13px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #ffffff;
+            color: var(--primary);
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .field-space {
+            margin-top: 14px;
+        }
+
+        .warning {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 14px;
+            background: #fef3c7;
+            color: #92400e;
+            font-size: 13px;
+            line-height: 1.35;
+            font-weight: 700;
+        }
+
+        @media (max-width: 840px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .amounts {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .result .main {
+                font-size: 34px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header, .card, .result {
+                border-radius: 18px;
+                padding: 16px;
+            }
+
+                .header h1 {
+                    font-size: 24px;
+                }
+
+            .amounts, .coupons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .result-grid, .actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <section class="header">
+            <h1>Combustible</h1>
+            <p>Calcula el monto que debes pedir en la bomba para aprovechar al máximo los descuentos por litro.</p>
+        </section>
+
+        <section class="grid">
+            <div>
+                <div class="card">
+                    <h2>Monto disponible</h2>
+                    <div class="amounts" id="amountButtons"></div>
+
+                    <div class="field-space">
+                        <label for="customAmount">Otro monto</label>
+                        <input id="customAmount" type="text" inputmode="numeric" placeholder="Ej: 32000" />
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Precio y descuentos</h2>
+
+                    <label for="fuelPrice">Precio combustible por litro</label>
+                    <input id="fuelPrice" type="text" inputmode="numeric" value="1507" />
+
+                    <div class="field-space">
+                        <button class="discount copec active" id="copecBtn" type="button">
+                            <span>CopecPay <small>$10 por litro. Compatible con cupones Copec. Excluye Caja Los Andes.</small></span>
+                            <span id="copecMark">✓</span>
+                        </button>
+
+                        <button class="discount jumbo active" id="jumboBtn" type="button">
+                            <span>Código Jumbo <small>$100 por litro. Excluye Scotiabank, Caja Los Andes y cupones Copec.</small></span>
+                            <span id="jumboMark">✓</span>
+                        </button>
+
+                        <button class="discount scotia" id="scotiaBtn" type="button">
+                            <span>Scotiabank crédito <small>$75 por litro. Compatible con un cupón Copec. Excluye CopecPay, Jumbo y Caja Los Andes.</small></span>
+                            <span id="scotiaMark"></span>
+                        </button>
+
+                        <button class="discount caja" id="cajaBtn" type="button">
+                            <span>Caja Los Andes <small>$15 por litro. Descuento único, no se suma a ningún otro descuento.</small></span>
+                            <span id="cajaMark"></span>
+                        </button>
+                    </div>
+
+                    <div class="coupon-title">
+                        <h2 style="margin:0;font-size:18px;">Cupón Copec</h2>
+                        <span>Solo uno a la vez</span>
+                    </div>
+                    <div class="coupons" id="couponButtons"></div>
+                    <div class="warning" id="couponWarning">Caja Los Andes es un descuento único, por lo que desactiva los cupones y los demás descuentos.</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="result">
+                    <div class="badge" id="iterationBadge">0 iteraciones</div>
+                    <div class="label">Monto recomendado a pedir</div>
+                    <div class="main" id="finalAskAmount">$0</div>
+
+                    <div class="result-grid">
+                        <div class="metric"><span>Litros estimados</span><strong id="finalLiters">0,000 L</strong></div>
+                        <div class="metric"><span>Pago real estimado</span><strong id="finalPay">$0</strong></div>
+                        <div class="metric"><span>Monto adicional usado</span><strong id="extraAmount">$0</strong></div>
+                        <div class="metric"><span>Diferencia final</span><strong id="finalDifference">$0</strong></div>
+                    </div>
+
+                    <div class="summary">
+                        <strong>Resumen del cálculo</strong>
+                        <span id="summaryText"></span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="info">
+                        El cálculo repite el uso del ahorro generado por los descuentos hasta que la diferencia contra el monto disponible sea menor a $1 y mayor o igual a $0.
+                    </div>
+
+                    <div class="actions">
+                        <button id="toggleIterations" type="button">Ver iteraciones</button>
+                        <button id="resetBtn" type="button">Reiniciar</button>
+                    </div>
+
+                    <div class="table-wrap" id="tableWrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Monto a maximizar</th>
+                                    <th>Litros</th>
+                                    <th>Ahorro</th>
+                                    <th>Monto a pedir</th>
+                                    <th>Diferencia</th>
+                                    <th>Monto real</th>
+                                    <th>Monto a pagar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="iterationsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        var presetAmounts = [5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000];
+        var couponOptions = [0, 15, 30, 40, 60, 100];
+
+        var state = {
+            amount: 30000,
+            customAmount: "",
+            fuelPrice: 1507,
+            useCopecPay: true,
+            useJumbo: true,
+            useScotia: false,
+            useCaja: false,
+            selectedCoupon: 0,
+            showIterations: false
+        };
+
+        function formatCLP(value) {
+            var number = Number.isFinite(value) ? value : 0;
+            return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(number);
+        }
+
+        function formatLiters(value) {
+            var number = Number.isFinite(value) ? value : 0;
+            return new Intl.NumberFormat("es-CL", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(number);
+        }
+
+        function onlyNumber(value) {
+            var clean = String(value || "").replace(/[^0-9]/g, "");
+            return clean ? Number(clean) : 0;
+        }
+
+        function calculateFuel(initialBudget, fuelPrice, useCopecPay, useJumbo, useScotia, useCaja, selectedCoupon) {
+            var discountCopec = useCopecPay ? 10 : 0;
+            var discountJumbo = useJumbo ? 100 : 0;
+            var discountScotia = useScotia ? 75 : 0;
+            var discountCaja = useCaja ? 15 : 0;
+            var discountCoupon = selectedCoupon || 0;
+
+            var totalDiscount = useCaja
+                ? discountCaja
+                : discountCopec + discountJumbo + discountScotia + discountCoupon;
+
+            var discountedPrice = fuelPrice - totalDiscount;
+            var iterations = [];
+
+            if (initialBudget <= 0 || fuelPrice <= 0 || discountedPrice <= 0) {
+                return {
+                    totalDiscount: totalDiscount,
+                    discountedPrice: discountedPrice,
+                    iterations: [],
+                    finalAskAmount: 0,
+                    finalLiters: 0,
+                    finalAmountToPay: 0,
+                    finalDifference: 0,
+                    extraAmountFromDiscount: 0
+                };
+            }
+
+            var amountToMaximize = initialBudget;
+            var maxIterations = 100;
+
+            for (var i = 1; i <= maxIterations; i++) {
+                var liters = amountToMaximize / discountedPrice;
+                var saving = liters * totalDiscount;
+                var amountToAsk = initialBudget + saving;
+                var difference = amountToAsk - amountToMaximize;
+                var realAmountToPay = initialBudget - difference;
+
+                if (realAmountToPay < 0) realAmountToPay = 0;
+
+                iterations.push({
+                    iteration: i,
+                    amountToMaximize: amountToMaximize,
+                    liters: liters,
+                    saving: saving,
+                    amountToAsk: amountToAsk,
+                    difference: difference,
+                    initialBudget: initialBudget,
+                    realAmountToPay: realAmountToPay
+                });
+
+                if (difference >= 0 && difference < 1) break;
+                amountToMaximize = amountToAsk;
+            }
+
+            var last = iterations[iterations.length - 1] || {
+                amountToMaximize: 0,
+                liters: 0,
+                saving: 0,
+                amountToAsk: 0,
+                difference: 0,
+                realAmountToPay: 0
+            };
+
+            return {
+                totalDiscount: totalDiscount,
+                discountedPrice: discountedPrice,
+                iterations: iterations,
+                finalAskAmount: last.amountToAsk,
+                finalLiters: last.liters,
+                finalAmountToPay: last.realAmountToPay,
+                finalDifference: last.difference,
+                extraAmountFromDiscount: last.saving
+            };
+        }
+
+        function renderAmountButtons() {
+            var container = document.getElementById("amountButtons");
+            container.innerHTML = "";
+            presetAmounts.forEach(function (value) {
+                var btn = document.createElement("button");
+                btn.type = "button";
+                btn.textContent = formatCLP(value).replace("CLP", "").trim();
+                if (!state.customAmount && state.amount === value) btn.className = "active";
+                btn.addEventListener("click", function () {
+                    state.amount = value;
+                    state.customAmount = "";
+                    document.getElementById("customAmount").value = "";
+                    render();
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function renderCouponButtons() {
+            var container = document.getElementById("couponButtons");
+            container.innerHTML = "";
+            couponOptions.forEach(function (value) {
+                var btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "coupon-btn";
+                btn.textContent = value === 0 ? "Sin cupón" : "$" + value + "/L";
+                if (state.selectedCoupon === value) btn.classList.add("active");
+                if (state.useCaja && value !== 0) btn.disabled = true;
+                btn.addEventListener("click", function () {
+                    if (state.useCaja && value !== 0) return;
+                    state.selectedCoupon = value;
+                    if (value > 0) {
+                        state.useJumbo = false;
+                    }
+                    render();
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function updateDiscountButtons() {
+            updateDiscountButton("copecBtn", "copecMark", state.useCopecPay);
+            updateDiscountButton("jumboBtn", "jumboMark", state.useJumbo);
+            updateDiscountButton("scotiaBtn", "scotiaMark", state.useScotia);
+            updateDiscountButton("cajaBtn", "cajaMark", state.useCaja);
+            document.getElementById("couponWarning").style.display = state.useCaja ? "block" : "none";
+        }
+
+        function updateDiscountButton(buttonId, markId, active) {
+            var button = document.getElementById(buttonId);
+            var mark = document.getElementById(markId);
+            if (active) {
+                button.classList.add("active");
+                mark.textContent = "✓";
+            } else {
+                button.classList.remove("active");
+                mark.textContent = "";
+            }
+        }
+
+        function renderIterations(iterations) {
+            var tbody = document.getElementById("iterationsBody");
+            tbody.innerHTML = "";
+            iterations.forEach(function (row) {
+                var tr = document.createElement("tr");
+                tr.innerHTML =
+                    "<td>" + row.iteration + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.amountToMaximize)) + "</td>" +
+                    "<td>" + formatLiters(row.liters) + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.saving)) + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.amountToAsk)) + "</td>" +
+                    "<td>" + formatCLP(Math.max(0, Math.round(row.difference))) + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.initialBudget)) + "</td>" +
+                    "<td>" + formatCLP(Math.round(row.realAmountToPay)) + "</td>";
+                tbody.appendChild(tr);
+            });
+        }
+
+        function render() {
+            var effectiveAmount = state.customAmount ? onlyNumber(state.customAmount) : state.amount;
+            var fuelPrice = onlyNumber(document.getElementById("fuelPrice").value || state.fuelPrice);
+            state.fuelPrice = fuelPrice;
+
+            var result = calculateFuel(
+                effectiveAmount,
+                fuelPrice,
+                state.useCopecPay,
+                state.useJumbo,
+                state.useScotia,
+                state.useCaja,
+                state.selectedCoupon
+            );
+
+            renderAmountButtons();
+            renderCouponButtons();
+            updateDiscountButtons();
+
+            document.getElementById("iterationBadge").textContent = result.iterations.length + " iteración" + (result.iterations.length === 1 ? "" : "es");
+            document.getElementById("finalAskAmount").textContent = formatCLP(Math.round(result.finalAskAmount));
+            document.getElementById("finalLiters").textContent = formatLiters(result.finalLiters) + " L";
+            document.getElementById("finalPay").textContent = formatCLP(Math.round(result.finalAmountToPay));
+            document.getElementById("extraAmount").textContent = formatCLP(Math.round(result.extraAmountFromDiscount));
+            document.getElementById("finalDifference").textContent = formatCLP(Math.max(0, Math.floor(result.finalDifference)));
+
+            var couponText = state.selectedCoupon > 0 && !state.useCaja ? " Incluye cupón Copec de " + formatCLP(state.selectedCoupon) + " por litro." : "";
+            var cajaText = state.useCaja ? " Se aplicó Caja Los Andes como descuento único." : "";
+            document.getElementById("summaryText").textContent =
+                "Con " + formatCLP(effectiveAmount) +
+                " disponibles y un descuento total de " + formatCLP(result.totalDiscount) +
+                " por litro, el precio rebajado usado para calcular la carga es " +
+                formatCLP(result.discountedPrice) + " por litro." + couponText + cajaText;
+
+            renderIterations(result.iterations);
+            document.getElementById("tableWrap").style.display = state.showIterations ? "block" : "none";
+            document.getElementById("toggleIterations").textContent = state.showIterations ? "Ocultar iteraciones" : "Ver iteraciones";
+        }
+
+        function bindEvents() {
+            document.getElementById("customAmount").addEventListener("input", function (event) {
+                state.customAmount = event.target.value;
+                render();
+            });
+
+            document.getElementById("fuelPrice").addEventListener("input", function () { render(); });
+
+            document.getElementById("copecBtn").addEventListener("click", function () {
+                state.useCopecPay = !state.useCopecPay;
+                if (state.useCopecPay) state.useCaja = false;
+                render();
+            });
+
+            document.getElementById("jumboBtn").addEventListener("click", function () {
+                state.useJumbo = !state.useJumbo;
+                if (state.useJumbo) {
+                    state.useScotia = false;
+                    state.useCaja = false;
+                    state.selectedCoupon = 0;
+                }
+                render();
+            });
+
+            document.getElementById("scotiaBtn").addEventListener("click", function () {
+                state.useScotia = !state.useScotia;
+                if (state.useScotia) {
+                    state.useCopecPay = false;
+                    state.useJumbo = false;
+                    state.useCaja = false;
+                }
+                render();
+            });
+
+            document.getElementById("cajaBtn").addEventListener("click", function () {
+                state.useCaja = !state.useCaja;
+                if (state.useCaja) {
+                    state.useCopecPay = false;
+                    state.useJumbo = false;
+                    state.useScotia = false;
+                    state.selectedCoupon = 0;
+                }
+                render();
+            });
+
+            document.getElementById("toggleIterations").addEventListener("click", function () {
+                state.showIterations = !state.showIterations;
+                render();
+            });
+
+            document.getElementById("resetBtn").addEventListener("click", function () {
+                state.amount = 30000;
+                state.customAmount = "";
+                state.fuelPrice = 1507;
+                state.useCopecPay = true;
+                state.useJumbo = true;
+                state.useScotia = false;
+                state.useCaja = false;
+                state.selectedCoupon = 0;
+                state.showIterations = false;
+                document.getElementById("customAmount").value = "";
+                document.getElementById("fuelPrice").value = "1507";
+                render();
+            });
+        }
+
+        bindEvents();
+        render();
+    </script>
+</body>
+</html>
