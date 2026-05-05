@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\fhernandezg\\source\\repos\\fahg-cl\\Combustible\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\fhernandezg\\source\\repos\\fahg-cl\\Combustible\\Index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\fhernandezg\\source\\repos\\fahg-cl\\Combustible\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,7 +14,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -25,16 +25,20 @@
               "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Index.html",
-              "DocumentMoniker": "C:\\Users\\fhernandezg\\source\\repos\\fahg-cl\\Combustible\\Index.html",
-              "RelativeDocumentMoniker": "Index.html",
-              "ToolTip": "C:\\Users\\fhernandezg\\source\\repos\\fahg-cl\\Combustible\\Index.html",
-              "RelativeToolTip": "Index.html",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAeAAAAAAAAAA==",
+              "Title": "index.html",
+              "DocumentMoniker": "C:\\Users\\fhernandezg\\source\\repos\\fahg-cl\\Combustible\\index.html",
+              "RelativeDocumentMoniker": "index.html",
+              "ToolTip": "C:\\Users\\fhernandezg\\source\\repos\\fahg-cl\\Combustible\\index.html",
+              "RelativeToolTip": "index.html",
+              "ViewState": "AgIAANQBAAAAAAAAAAAAANkBAAB6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
-              "WhenOpened": "2026-04-28T20:35:59.81Z",
+              "WhenOpened": "2026-04-29T18:09:09.472Z",
               "EditorCaption": ""
             },
             {
