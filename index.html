@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Calculadora de Combustible con Descuentos</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f172a'/%3E%3Cpath d='M30 82V22c0-5 4-9 9-9h22c5 0 9 4 9 9v60H30Z' fill='%23f97316'/%3E%3Cpath d='M39 23h22v22H39z' fill='%23fff7ed'/%3E%3Cpath d='M70 30h8l8 10v27c0 7-5 12-12 12h-4V66h4c2 0 4-2 4-4V43l-8-9v-4Z' fill='%2322c55e'/%3E%3Cpath d='M38 60h24v10H38z' fill='%230f172a'/%3E%3C/svg%3E" />
+    <title>Combustible</title>
+
+    <link rel="apple-touch-icon" href="iconobencina.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="iconobencina.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="iconobencina.png">
+
     <style>
         :root {
             --bg: #eef6ff;
@@ -24,6 +28,7 @@
             --soft-orange: #ffedd5;
             --soft-green: #dcfce7;
             --soft-purple: #ede9fe;
+            --soft-amber: #fef3c7;
             --radius: 18px;
         }
 
@@ -88,6 +93,7 @@
             display: grid;
             grid-template-columns: 1fr 0.9fr;
             gap: 18px;
+            align-items: start;
         }
 
         .card {
@@ -128,7 +134,8 @@
                 box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
             }
 
-        .amounts, .coupons {
+        .amounts,
+        .coupons {
             display: grid;
             gap: 10px;
             margin-bottom: 18px;
@@ -158,6 +165,13 @@
                 transform: translateY(-1px);
                 border-color: var(--blue);
                 box-shadow: 0 8px 16px rgba(37, 99, 235, 0.12);
+            }
+
+            button:disabled {
+                opacity: 0.45;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
             }
 
             button.active {
@@ -264,6 +278,7 @@
                 font-weight: 800;
                 margin: 6px 0 18px;
                 line-height: 1;
+                word-break: break-word;
             }
 
         .result-grid {
@@ -291,6 +306,7 @@
                 display: block;
                 margin-top: 6px;
                 font-size: 22px;
+                word-break: break-word;
             }
 
         .summary {
@@ -330,37 +346,98 @@
                 border-color: var(--blue);
             }
 
-        .table-wrap {
+        .iterations-wrap {
             display: none;
             margin-top: 16px;
-            overflow-x: auto;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-        }
-
-        table {
             width: 100%;
-            min-width: 920px;
-            border-collapse: collapse;
-            font-size: 14px;
-            background: white;
         }
 
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #eef0f2;
-            text-align: right;
+        .iterations-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            width: 100%;
         }
 
-            th:first-child, td:first-child {
-                text-align: left;
+        .iteration-card {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .iteration-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            background: linear-gradient(135deg, var(--soft-blue), #ffffff);
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .iteration-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .iteration-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 68px;
+            border-radius: 999px;
+            padding: 5px 9px;
+            background: var(--soft-green);
+            color: #166534;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .iteration-body {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            padding: 14px;
+        }
+
+        .iteration-item {
+            min-width: 0;
+            border-radius: 14px;
+            background: #f8fafc;
+            padding: 10px;
+            border: 1px solid #eef2f7;
+        }
+
+            .iteration-item.full {
+                grid-column: 1 / -1;
+                background: var(--soft-amber);
+                border-color: #fde68a;
             }
 
-        th {
-            background: #f8fafc;
-            color: #334155;
-            font-size: 13px;
-        }
+            .iteration-item span {
+                display: block;
+                margin-bottom: 5px;
+                color: var(--muted);
+                font-size: 11px;
+                line-height: 1.2;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                font-weight: 800;
+            }
+
+            .iteration-item strong {
+                display: block;
+                color: var(--text);
+                font-size: 16px;
+                line-height: 1.2;
+                word-break: break-word;
+            }
 
         .badge {
             display: inline-block;
@@ -403,12 +480,14 @@
             }
         }
 
-        @media (max-width: 420px) {
+        @media (max-width: 520px) {
             .container {
                 padding: 12px;
             }
 
-            .header, .card, .result {
+            .header,
+            .card,
+            .result {
                 border-radius: 18px;
                 padding: 16px;
             }
@@ -417,20 +496,42 @@
                     font-size: 24px;
                 }
 
-            .amounts, .coupons {
+            .amounts,
+            .coupons {
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .result-grid, .actions {
+            .result-grid,
+            .actions {
                 grid-template-columns: 1fr;
+            }
+
+            .iteration-body {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 12px;
+            }
+
+            .iteration-card-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .iteration-pill {
+                min-width: auto;
+            }
+
+            .iteration-item.full {
+                grid-column: auto;
             }
         }
     </style>
 </head>
+
 <body>
     <main class="container">
         <section class="header">
-            <h1>Calculadora de carga con descuentos</h1>
+            <h1>Combustible</h1>
             <p>Calcula el monto que debes pedir en la bomba para aprovechar al máximo los descuentos por litro.</p>
         </section>
 
@@ -469,7 +570,7 @@
                         </button>
 
                         <button class="discount caja" id="cajaBtn" type="button">
-                            <span>Caja Los Andes <small>$15 por litro. Descuento único, no se suma a ningún otro.</small></span>
+                            <span>Caja Los Andes <small>$15 por litro. Descuento único, no se suma a ningún otro descuento.</small></span>
                             <span id="cajaMark"></span>
                         </button>
                     </div>
@@ -478,6 +579,7 @@
                         <h2 style="margin:0;font-size:18px;">Cupón Copec</h2>
                         <span>Solo uno a la vez</span>
                     </div>
+
                     <div class="coupons" id="couponButtons"></div>
                     <div class="warning" id="couponWarning">Caja Los Andes es un descuento único, por lo que desactiva los cupones y los demás descuentos.</div>
                 </div>
@@ -490,10 +592,25 @@
                     <div class="main" id="finalAskAmount">$0</div>
 
                     <div class="result-grid">
-                        <div class="metric"><span>Litros estimados</span><strong id="finalLiters">0,000 L</strong></div>
-                        <div class="metric"><span>Pago real estimado</span><strong id="finalPay">$0</strong></div>
-                        <div class="metric"><span>Monto adicional usado</span><strong id="extraAmount">$0</strong></div>
-                        <div class="metric"><span>Diferencia final</span><strong id="finalDifference">$0</strong></div>
+                        <div class="metric">
+                            <span>Litros estimados</span>
+                            <strong id="finalLiters">0,000 L</strong>
+                        </div>
+
+                        <div class="metric">
+                            <span>Pago real estimado</span>
+                            <strong id="finalPay">$0</strong>
+                        </div>
+
+                        <div class="metric">
+                            <span>Monto adicional usado</span>
+                            <strong id="extraAmount">$0</strong>
+                        </div>
+
+                        <div class="metric">
+                            <span>Diferencia final</span>
+                            <strong id="finalDifference">$0</strong>
+                        </div>
                     </div>
 
                     <div class="summary">
@@ -512,22 +629,8 @@
                         <button id="resetBtn" type="button">Reiniciar</button>
                     </div>
 
-                    <div class="table-wrap" id="tableWrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Monto a maximizar</th>
-                                    <th>Litros</th>
-                                    <th>Ahorro</th>
-                                    <th>Monto a pedir</th>
-                                    <th>Diferencia</th>
-                                    <th>Monto real</th>
-                                    <th>Monto a pagar</th>
-                                </tr>
-                            </thead>
-                            <tbody id="iterationsBody"></tbody>
-                        </table>
+                    <div class="iterations-wrap" id="iterationsWrap">
+                        <div class="iterations-list" id="iterationsBody"></div>
                     </div>
                 </div>
             </div>
@@ -552,12 +655,19 @@
 
         function formatCLP(value) {
             var number = Number.isFinite(value) ? value : 0;
-            return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(number);
+            return new Intl.NumberFormat("es-CL", {
+                style: "currency",
+                currency: "CLP",
+                maximumFractionDigits: 0
+            }).format(number);
         }
 
         function formatLiters(value) {
             var number = Number.isFinite(value) ? value : 0;
-            return new Intl.NumberFormat("es-CL", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(number);
+            return new Intl.NumberFormat("es-CL", {
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3
+            }).format(number);
         }
 
         function onlyNumber(value) {
@@ -602,7 +712,9 @@
                 var difference = amountToAsk - amountToMaximize;
                 var realAmountToPay = amountToMaximize - saving;
 
-                if (realAmountToPay < 0) realAmountToPay = 0;
+                if (realAmountToPay < 0) {
+                    realAmountToPay = 0;
+                }
 
                 iterations.push({
                     iteration: i,
@@ -615,7 +727,10 @@
                     realAmountToPay: realAmountToPay
                 });
 
-                if (difference >= 0 && difference < 1) break;
+                if (difference >= 0 && difference < 1) {
+                    break;
+                }
+
                 amountToMaximize = amountToAsk;
             }
 
@@ -643,17 +758,23 @@
         function renderAmountButtons() {
             var container = document.getElementById("amountButtons");
             container.innerHTML = "";
+
             presetAmounts.forEach(function (value) {
                 var btn = document.createElement("button");
                 btn.type = "button";
                 btn.textContent = formatCLP(value).replace("CLP", "").trim();
-                if (!state.customAmount && state.amount === value) btn.className = "active";
+
+                if (!state.customAmount && state.amount === value) {
+                    btn.className = "active";
+                }
+
                 btn.addEventListener("click", function () {
                     state.amount = value;
                     state.customAmount = "";
                     document.getElementById("customAmount").value = "";
                     render();
                 });
+
                 container.appendChild(btn);
             });
         }
@@ -661,21 +782,35 @@
         function renderCouponButtons() {
             var container = document.getElementById("couponButtons");
             container.innerHTML = "";
+
             couponOptions.forEach(function (value) {
                 var btn = document.createElement("button");
                 btn.type = "button";
                 btn.className = "coupon-btn";
                 btn.textContent = value === 0 ? "Sin cupón" : "$" + value + "/L";
-                if (state.selectedCoupon === value) btn.classList.add("active");
-                if (state.useCaja && value !== 0) btn.disabled = true;
+
+                if (state.selectedCoupon === value) {
+                    btn.classList.add("active");
+                }
+
+                if (state.useCaja && value !== 0) {
+                    btn.disabled = true;
+                }
+
                 btn.addEventListener("click", function () {
-                    if (state.useCaja && value !== 0) return;
+                    if (state.useCaja && value !== 0) {
+                        return;
+                    }
+
                     state.selectedCoupon = value;
+
                     if (value > 0) {
                         state.useJumbo = false;
                     }
+
                     render();
                 });
+
                 container.appendChild(btn);
             });
         }
@@ -685,12 +820,14 @@
             updateDiscountButton("jumboBtn", "jumboMark", state.useJumbo);
             updateDiscountButton("scotiaBtn", "scotiaMark", state.useScotia);
             updateDiscountButton("cajaBtn", "cajaMark", state.useCaja);
+
             document.getElementById("couponWarning").style.display = state.useCaja ? "block" : "none";
         }
 
         function updateDiscountButton(buttonId, markId, active) {
             var button = document.getElementById(buttonId);
             var mark = document.getElementById(markId);
+
             if (active) {
                 button.classList.add("active");
                 mark.textContent = "✓";
@@ -700,27 +837,65 @@
             }
         }
 
+        function createIterationItem(label, value, full) {
+            var item = document.createElement("div");
+            item.className = full ? "iteration-item full" : "iteration-item";
+
+            var labelEl = document.createElement("span");
+            labelEl.textContent = label;
+
+            var valueEl = document.createElement("strong");
+            valueEl.textContent = value;
+
+            item.appendChild(labelEl);
+            item.appendChild(valueEl);
+
+            return item;
+        }
+
         function renderIterations(iterations) {
-            var tbody = document.getElementById("iterationsBody");
-            tbody.innerHTML = "";
+            var container = document.getElementById("iterationsBody");
+            container.innerHTML = "";
+
             iterations.forEach(function (row) {
-                var tr = document.createElement("tr");
-                tr.innerHTML =
-                    "<td>" + row.iteration + "</td>" +
-                    "<td>" + formatCLP(Math.round(row.amountToMaximize)) + "</td>" +
-                    "<td>" + formatLiters(row.liters) + "</td>" +
-                    "<td>" + formatCLP(Math.round(row.saving)) + "</td>" +
-                    "<td>" + formatCLP(Math.round(row.amountToAsk)) + "</td>" +
-                    "<td>" + formatCLP(Math.max(0, Math.round(row.difference))) + "</td>" +
-                    "<td>" + formatCLP(Math.round(row.initialBudget)) + "</td>" +
-                    "<td>" + formatCLP(Math.round(row.realAmountToPay)) + "</td>";
-                tbody.appendChild(tr);
+                var card = document.createElement("div");
+                card.className = "iteration-card";
+
+                var header = document.createElement("div");
+                header.className = "iteration-card-header";
+
+                var title = document.createElement("div");
+                title.className = "iteration-title";
+                title.textContent = "Iteración " + row.iteration;
+
+                var pill = document.createElement("div");
+                pill.className = "iteration-pill";
+                pill.textContent = "Dif. " + formatCLP(Math.max(0, Math.round(row.difference)));
+
+                header.appendChild(title);
+                header.appendChild(pill);
+
+                var body = document.createElement("div");
+                body.className = "iteration-body";
+
+                body.appendChild(createIterationItem("Monto a maximizar", formatCLP(Math.round(row.amountToMaximize))));
+                body.appendChild(createIterationItem("Litros", formatLiters(row.liters) + " L"));
+                body.appendChild(createIterationItem("Ahorro", formatCLP(Math.round(row.saving))));
+                body.appendChild(createIterationItem("Monto a pedir", formatCLP(Math.round(row.amountToAsk))));
+                body.appendChild(createIterationItem("Monto real", formatCLP(Math.round(row.initialBudget))));
+                body.appendChild(createIterationItem("Monto a pagar", formatCLP(Math.round(row.realAmountToPay))));
+                body.appendChild(createIterationItem("Diferencia", formatCLP(Math.max(0, Math.round(row.difference))), true));
+
+                card.appendChild(header);
+                card.appendChild(body);
+                container.appendChild(card);
             });
         }
 
         function render() {
             var effectiveAmount = state.customAmount ? onlyNumber(state.customAmount) : state.amount;
             var fuelPrice = onlyNumber(document.getElementById("fuelPrice").value || state.fuelPrice);
+
             state.fuelPrice = fuelPrice;
 
             var result = calculateFuel(
@@ -737,23 +912,32 @@
             renderCouponButtons();
             updateDiscountButtons();
 
-            document.getElementById("iterationBadge").textContent = result.iterations.length + " iteración" + (result.iterations.length === 1 ? "" : "es");
+            document.getElementById("iterationBadge").textContent =
+                result.iterations.length + " iteración" + (result.iterations.length === 1 ? "" : "es");
+
             document.getElementById("finalAskAmount").textContent = formatCLP(Math.round(result.finalAskAmount));
             document.getElementById("finalLiters").textContent = formatLiters(result.finalLiters) + " L";
             document.getElementById("finalPay").textContent = formatCLP(Math.round(result.finalAmountToPay));
             document.getElementById("extraAmount").textContent = formatCLP(Math.round(result.extraAmountFromDiscount));
             document.getElementById("finalDifference").textContent = formatCLP(Math.max(0, Math.floor(result.finalDifference)));
 
-            var couponText = state.selectedCoupon > 0 && !state.useCaja ? " Incluye cupón Copec de " + formatCLP(state.selectedCoupon) + " por litro." : "";
-            var cajaText = state.useCaja ? " Se aplicó Caja Los Andes como descuento único." : "";
+            var couponText = state.selectedCoupon > 0 && !state.useCaja
+                ? " Incluye cupón Copec de " + formatCLP(state.selectedCoupon) + " por litro."
+                : "";
+
+            var cajaText = state.useCaja
+                ? " Se aplicó Caja Los Andes como descuento único."
+                : "";
+
             document.getElementById("summaryText").textContent =
                 "Con " + formatCLP(effectiveAmount) +
                 " disponibles y un descuento total de " + formatCLP(result.totalDiscount) +
-                " por litro, el precio rebajado usado para calcular la carga es " +
+                " por litro, el precio rebajado usado como referencia es " +
                 formatCLP(result.discountedPrice) + " por litro." + couponText + cajaText;
 
             renderIterations(result.iterations);
-            document.getElementById("tableWrap").style.display = state.showIterations ? "block" : "none";
+
+            document.getElementById("iterationsWrap").style.display = state.showIterations ? "block" : "none";
             document.getElementById("toggleIterations").textContent = state.showIterations ? "Ocultar iteraciones" : "Ver iteraciones";
         }
 
@@ -763,42 +947,54 @@
                 render();
             });
 
-            document.getElementById("fuelPrice").addEventListener("input", function () { render(); });
+            document.getElementById("fuelPrice").addEventListener("input", function () {
+                render();
+            });
 
             document.getElementById("copecBtn").addEventListener("click", function () {
                 state.useCopecPay = !state.useCopecPay;
-                if (state.useCopecPay) state.useCaja = false;
+
+                if (state.useCopecPay) {
+                    state.useCaja = false;
+                }
+
                 render();
             });
 
             document.getElementById("jumboBtn").addEventListener("click", function () {
                 state.useJumbo = !state.useJumbo;
+
                 if (state.useJumbo) {
                     state.useScotia = false;
                     state.useCaja = false;
                     state.selectedCoupon = 0;
                 }
+
                 render();
             });
 
             document.getElementById("scotiaBtn").addEventListener("click", function () {
                 state.useScotia = !state.useScotia;
+
                 if (state.useScotia) {
                     state.useCopecPay = false;
                     state.useJumbo = false;
                     state.useCaja = false;
                 }
+
                 render();
             });
 
             document.getElementById("cajaBtn").addEventListener("click", function () {
                 state.useCaja = !state.useCaja;
+
                 if (state.useCaja) {
                     state.useCopecPay = false;
                     state.useJumbo = false;
                     state.useScotia = false;
                     state.selectedCoupon = 0;
                 }
+
                 render();
             });
 
@@ -817,8 +1013,10 @@
                 state.useCaja = false;
                 state.selectedCoupon = 0;
                 state.showIterations = false;
+
                 document.getElementById("customAmount").value = "";
                 document.getElementById("fuelPrice").value = "1507";
+
                 render();
             });
         }
